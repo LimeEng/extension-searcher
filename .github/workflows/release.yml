@@ -1,0 +1,44 @@
+name: Publish
+
+on:
+  release:
+    types: published
+
+jobs:
+  publish:
+
+    strategy:
+      matrix:
+        os: [ubuntu-latest, windows-latest, macos-latest]
+        include:
+          # TODO: Fix duplication of binary name
+          - os: ubuntu-latest
+            artifact_name: extension-searcher # File name of cargo generated binary
+            asset_name: extension-searcher-linux-amd64 # Name of asset uploaded to Github
+          - os: windows-latest
+            artifact_name: extension-searcher.exe # File name of cargo generated binary
+            asset_name: extension-searcher-windows-amd64 # Name of asset uploaded to Github
+          - os: macos-latest
+            artifact_name: extension-searcher # File name of cargo generated binary
+            asset_name: extension-searcher-macos-amd64 # Name of asset uploaded to Github
+
+    name: Publish for ${{ matrix.os }}
+    runs-on: ${{ matrix.os }}
+ 
+    steps:
+    - uses: actions/checkout@v2
+    - name: Install latest stable
+      uses: actions-rs/toolchain@v1
+      with:
+        profile: minimal
+        toolchain: stable
+        override: true
+    - name: Build
+      run: cargo build --release
+    - name: Upload binary to release
+      uses: svenstaro/upload-release-action@v1-release
+      with:
+        repo_token: ${{ secrets.GITHUB_TOKEN }}
+        file: target/release/${{ matrix.artifact_name }}
+        asset_name: ${{ matrix.asset_name }}
+        tag: ${{ github.ref }}
