@@ -55,7 +55,10 @@ fn main() -> Result<(), CliError> {
             search_directory(root_dir.to_string(), |path| {
                 let extension = path.extension().and_then(|s| s.to_str());
                 if let Some(ext) = extension {
-                    if extensions.contains(&ext) {
+                    if extensions
+                        .iter()
+                        .any(|&item| item.to_lowercase() == ext.to_owned().to_lowercase())
+                    {
                         return true;
                     }
                 }
